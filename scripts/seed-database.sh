@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 const mongodb = require('mongodb');
 
-const mongoImpl = require('../src/repo/mongo-impl');
 const entityKeys = require('../src/entity-keys');
 
 const DEFAULT_CONN_STR = 'mongodb://localhost:27017/mds-identity';
@@ -52,11 +51,5 @@ const main = () => {
     .then((client) => client)
     .then((client) => client.close());
 };
-
-// const main2 = () => {
-//   const mongoClient = mongoImpl.initClient(DEFAULT_CONN_STR);
-//   return mongoImpl.getNextCounterValue(mongoClient, entityKeys.account)
-//     .then((data) => writeOut(data));
-// };
 
 main();
