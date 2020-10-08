@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+const bcryptjs = require('bcryptjs');
+
+const src = require('../src');
+const globals = require('../src/globals');
+const repo = require('../src/repo');
+
+const logger = globals.getLogger();
+const port = process.env.API_PORT || 8888;
+const app = src.buildApp();
+
+const setupSystemUser = async () => {
+  const accountId = '1';
+  const userId = process.env.ORID_PROVIDER_KEY;
+  if (!userId) {
+    logger.warn('Could not determine system user name. Aborting system user setup.');
+    return;
+  }
+
+  const systemUser = await repo.getUserByUserId(userId);
+  if (systemUser) {
+    logger.info({ userId }, 'System user found. Bypassing system user setup.');
+    return;
+  }
+
+  const systemAccount = await repo.getAccountById('1');
+  if (!systemAccount) {
+    await repo.createAccount({
+      accountId,
+      name: 'System',
+      ownerUserId: userId,
+      isActive: 'true',
+    });
+  }
+
+  const password = globals.generateRandomString(32);
+  const hashedPassword = await bcryptjs.hash(password,
+    parseInt(process.env.PWD_HASH_CYCLES, 10) || 18);
+  const newUser = {
+    userId,
+    email: 'system@localhost',
+    name: 'System User',
+    password: hashedPassword,
+    accountId,
+    confirmCode: null,
+    isActive: 'true',
+  };
+  await repo.createUser(newUser);
+  logger.info({ accountId, userId, password }, 'System user created. Be sure to change the default password using the "updateUser" endpoint!');
+};
+
+setupSystemUser();
+app.listen(port, () => logger.info(`Example app listening on port ${port}!`));
