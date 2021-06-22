@@ -41,7 +41,9 @@ const getNextCounterValue = (mongoClient, entity) => ensureConnected(mongoClient
       $inc: { value: 1 },
     };
     const options = {
-      j: true,
+      writeConcern: {
+        j: true,
+      },
       upsert: true,
       returnOriginal: false,
     };
@@ -79,7 +81,9 @@ const createUser = (mongoClient, userData) => ensureConnected(mongoClient)
     }
 
     const options = {
-      j: true,
+      writeConcern: {
+        j: true,
+      },
     };
 
     return db.collection(TABLES.user)
@@ -158,7 +162,9 @@ const updateUser = (mongoClient, userData) => ensureConnected(mongoClient)
       }
     }
     const options = {
-      j: true,
+      writeConcern: {
+        j: true,
+      },
     };
 
     const selector = { userId: userData.userId };
@@ -268,7 +274,9 @@ const updateAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
       },
     };
     const options = {
-      j: true,
+      writeConcern: {
+        j: true,
+      },
     };
 
     return db.collection(TABLES.account)

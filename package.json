@@ -29,7 +29,7 @@
     "jsonschema": "^1.4.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",
-    "mongodb": "^3.6.4",
+    "mongodb": "^3.6.3",
     "nodemailer": "^6.4.17"
   },
   "devDependencies": {
