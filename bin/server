@@ -33,7 +33,15 @@ const setupSystemUser = async () => {
     });
   }
 
-  const password = globals.generateRandomString(32);
+  let password;
+
+  if (process.env.MDS_SYS_PASSWORD) {
+    password = process.env.MDS_SYS_PASSWORD;
+  } else {
+    logger.info({ accountId, userId, password }, 'System user will be created with random password. Be sure to change the default password using the "updateUser" endpoint!');
+    password = globals.generateRandomString(32);
+  }
+
   const hashedPassword = await bcryptjs.hash(password,
     parseInt(process.env.PWD_HASH_CYCLES, 10) || 18);
   const newUser = {
@@ -46,7 +54,7 @@ const setupSystemUser = async () => {
     isActive: 'true',
   };
   await repo.createUser(newUser);
-  logger.info({ accountId, userId, password }, 'System user created. Be sure to change the default password using the "updateUser" endpoint!');
+  logger.info({ accountId, userId }, 'System user created.');
 };
 
 setupSystemUser();
