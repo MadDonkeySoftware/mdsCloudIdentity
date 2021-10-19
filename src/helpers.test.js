@@ -1,9 +1,10 @@
+const _ = require('lodash');
 const chai = require('chai');
 const sinon = require('sinon');
 
 const helpers = require('./helpers');
 
-describe('src/helpers', () => {
+describe(__filename, () => {
   afterEach(() => {
     sinon.restore();
   });
@@ -45,6 +46,13 @@ describe('src/helpers', () => {
 
     it('with numeric input returns string', () => {
       chai.expect(helpers.anyToString(135)).to.be.equal('135');
+    });
+  });
+
+  describe('getEnvVar', () => {
+    it('Reads env vars', () => {
+      const keys = ['NODE_ENV', 'NONEXISTENT'];
+      _.map(keys, (k) => chai.expect(helpers.getEnvVar(k)).to.equal(process.env[k]));
     });
   });
 });

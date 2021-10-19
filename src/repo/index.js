@@ -18,6 +18,8 @@ const initializeMongoDb = () => {
   const getAccountById = (accountId) => mongo.getAccountById(client, accountId);
   const getAccountByOwnerId = (accountId) => mongo.getAccountByOwnerId(client, accountId);
   const updateAccount = (accountData) => mongo.updateAccount(client, accountData);
+  const getConfiguration = () => mongo.getConfiguration(client);
+  const updateConfiguration = (configuration) => mongo.updateConfiguration(client, configuration);
 
   return {
     handleAppShutdown,
@@ -29,6 +31,8 @@ const initializeMongoDb = () => {
     getAccountById,
     getAccountByOwnerId,
     updateAccount,
+    getConfiguration,
+    updateConfiguration,
   };
 };
 

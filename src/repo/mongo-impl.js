@@ -9,6 +9,7 @@ const TABLES = {
   account: 'mdsAccount',
   counter: 'mdsCounter',
   user: 'mdsUser',
+  configuration: 'mdsConfig',
 };
 
 /**
@@ -284,6 +285,66 @@ const updateAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
       .then(() => null);
   });
 
+/**
+ * Retrieves the configuration provided to clients from the database
+ * @param {mongodb.MongoClient} mongoClient the mongo client
+ * @param {string} ownerId The id that will uniquely identify the account
+ */
+const getConfiguration = (mongoClient) => ensureConnected(mongoClient)
+  .then((client) => {
+    const db = client.db();
+    return db.collection(TABLES.configuration).findOne({ v: 1 })
+      .then((item) => {
+        if (item) {
+          return item;
+        }
+        return null;
+      });
+  });
+
+/**
+ * Updates the configuration that is stored in the database and shared amongst clients
+ * @param {mongodb.MongoClient} mongoClient the mongo client
+ * @param {object} configuration object containing connection details for internal and external sdks
+ * @param {object} accountData.internal The internal connection details
+ * @param {string} accountData.internal.identityUrl The identity service url
+ * @param {string} accountData.internal.nsUrl The notification service url
+ * @param {string} accountData.internal.qsUrl The queue service url
+ * @param {string} accountData.internal.fsUrl The file service url
+ * @param {string} accountData.internal.sfUrl The serverless functions service url
+ * @param {string} accountData.internal.smUrl The state machine service url
+ * @param {boolean} accountData.internal.allowSelfSignCert Toggle to allow self signed certs
+ * @param {object} accountData.external The external connection details
+ * @param {string} accountData.external.identityUrl The identity service url
+ * @param {string} accountData.external.nsUrl The notification service url
+ * @param {string} accountData.external.qsUrl The queue service url
+ * @param {string} accountData.external.fsUrl The file service url
+ * @param {string} accountData.external.sfUrl The serverless functions service url
+ * @param {string} accountData.external.smUrl The state machine service url
+ * @param {boolean} accountData.external.allowSelfSignCert Toggle to allow self signed certs
+ */
+const updateConfiguration = (mongoClient, configuration) => ensureConnected(mongoClient)
+  .then((client) => {
+    const db = client.db();
+    const selector = { v: 1 };
+    const params = {
+      $set: {
+        internal: configuration.internal,
+        external: configuration.external,
+      },
+    };
+    const options = {
+      writeConcern: {
+        j: true,
+      },
+      upsert: true,
+    };
+
+    return db.collection(TABLES.configuration)
+      .updateOne(selector, params, options)
+      .then(() => null);
+  });
+
 module.exports = {
   initClient,
   getNextCounterValue,
@@ -294,4 +355,6 @@ module.exports = {
   getAccountById,
   getAccountByOwnerId,
   updateAccount,
+  getConfiguration,
+  updateConfiguration,
 };

@@ -1,6 +1,9 @@
+const _ = require('lodash');
 const bcryptjs = require('bcryptjs');
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const os = require('os');
+const netmask = require('netmask');
 
 const globals = require('../globals');
 const helpers = require('../helpers');
@@ -8,6 +11,7 @@ const repo = require('../repo');
 const entityKeys = require('../entity-keys');
 const registerValidator = require('./validators/register');
 const authenticateValidator = require('./validators/authenticate');
+const configurationValidator = require('./validators/configuration');
 
 const router = express.Router();
 
@@ -312,6 +316,36 @@ const impersonateHandler = async (request, response) => {
   return sendResponse(response, 200, { token });
 };
 
+const getConfigurationHandler = async (request, response) => {
+  /*
+  https://stackoverflow.com/questions/10849687/express-js-how-to-get-remote-client-address
+
+  1. Upon container build have protobuf layer accept new parameter on invoke call; serviceContext
+  2. Modify invoke call to include host:port of identity server
+  3. Have configuration endpoint verify request from trusted source (TBD)
+  4. Have configuration endpoint return host:port of other available service IF TRUSTED
+  5. Have configuration endpoint return 422, 401 or something else IF NOT TRUSTED
+  */
+  const config = await repo.getConfiguration();
+  const data = request.isLocal ? config.internal : config.external;
+  return sendResponse(response, 200, data);
+};
+
+const updateConfigurationHandler = async (request, response) => {
+  const { body, parsedToken } = request;
+
+  const log = globals.getLogger();
+  if (parsedToken.payload.accountId !== '1') {
+    log.warn({ requestorIp: request.requestorIp }, 'Non root account attempting to change configuration');
+
+    // 404 here instead of 401 to not leak that this endpoint exists.
+    return sendResponse(response, 404);
+  }
+
+  await repo.updateConfiguration(body);
+  return sendResponse(response, 200);
+};
+
 const validatePostBody = (validator) => (request, response, next) => {
   const { body } = request;
   const validationResult = validator.validate(body);
@@ -341,11 +375,33 @@ const validateToken = (request, response, next) => {
   return next();
 };
 
+const validateFromInternalNetwork = (request, response, next) => {
+  // I'm not going to do any better better explaining this so see link for more info:
+  // https://stackoverflow.com/questions/29411551/express-js-req-ip-is-returning-ffff127-0-0-1
+  // Also, https://stackoverflow.com/a/47913950/1487311
+  const requestIp = helpers.normalizeRequestAddress(request.headers['x-forwarded-for'] || request.socket.remoteAddress);
+  request.requestorIp = requestIp;
+
+  if (_.indexOf(['127.0.0.1', '::1'], requestIp) > -1) {
+    request.isLocal = true;
+    return next();
+  }
+
+  const nets = os.networkInterfaces();
+  const nicId = helpers.getEnvVar('SERVICE_NIC_ID', 'eth0');
+  const block = new netmask.Netmask(_.get(nets, [nicId], [{}])[0].cidr);
+  const isLocal = block.contains(requestIp);
+  request.isLocal = isLocal;
+  return next();
+};
+
 router.post('/register', validatePostBody(registerValidator), registerHandler);
 router.post('/authenticate', validatePostBody(authenticateValidator), authenticateHandler);
 router.get('/publicSignature', publicSignatureHandler);
 router.post('/updateUser', validateToken, updateUserHandler);
 router.post('/impersonate', validateToken, impersonateHandler);
+router.get('/configuration', validateFromInternalNetwork, getConfigurationHandler);
+router.post('/configuration', validateToken, validatePostBody(configurationValidator), updateConfigurationHandler);
 
 /* TODO
  * Add user to account

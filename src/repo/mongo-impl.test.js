@@ -106,7 +106,9 @@ describe('src/repo/mongo-impl', () => {
                 userId: 1,
               },
               {
-                j: true,
+                writeConcern: {
+                  j: true,
+                },
               },
             ]);
           });
@@ -168,7 +170,9 @@ describe('src/repo/mongo-impl', () => {
                 userId: 1,
               },
               {
-                j: true,
+                writeConcern: {
+                  j: true,
+                },
               },
             ]);
           });
@@ -287,7 +291,9 @@ describe('src/repo/mongo-impl', () => {
                 },
               },
               {
-                j: true,
+                writeConcern: {
+                  j: true,
+                },
               },
             ]);
           });
@@ -336,7 +342,9 @@ describe('src/repo/mongo-impl', () => {
                 },
               },
               {
-                j: true,
+                writeConcern: {
+                  j: true,
+                },
               },
             ]);
           });
@@ -383,7 +391,9 @@ describe('src/repo/mongo-impl', () => {
                 },
               },
               {
-                j: true,
+                writeConcern: {
+                  j: true,
+                },
               },
             ]);
           });
@@ -531,7 +541,7 @@ describe('src/repo/mongo-impl', () => {
         });
     });
 
-    it('returns null when account does not exit in the database', () => {
+    it('returns null when account does not exist in the database', () => {
       const findOneStub = sinon.stub()
         .withArgs(
           { ownerId: 'testUser' },
@@ -594,7 +604,103 @@ describe('src/repo/mongo-impl', () => {
               },
             },
             {
-              j: true,
+              writeConcern: {
+                j: true,
+              },
+            },
+          ]);
+        });
+    });
+  });
+
+  describe('getConfiguration', () => {
+    it('returns the configuration when it exist in the database', () => {
+      const findOneStub = sinon.stub()
+        .withArgs(
+          { v: 1 },
+        )
+        .resolves({
+          config: 'test',
+        });
+      const client = {
+        isConnected: () => true,
+        db: () => ({
+          collection: sinon.stub().withArgs('mdsConfig').returns({
+            findOne: findOneStub,
+          }),
+        }),
+      };
+
+      // Act
+      return impl.getConfiguration(client)
+        .then((result) => {
+          chai.expect(result).to.deep.equal({
+            config: 'test',
+          });
+        });
+    });
+
+    it('returns null when configuration does not exist in the database', () => {
+      const findOneStub = sinon.stub()
+        .withArgs(
+          { v: 1 },
+        )
+        .resolves();
+      const client = {
+        isConnected: () => true,
+        db: () => ({
+          collection: sinon.stub().withArgs('mdsConfig').returns({
+            findOne: findOneStub,
+          }),
+        }),
+      };
+
+      // Act
+      return impl.getConfiguration(client)
+        .then((result) => {
+          chai.expect(result).to.equal(null);
+        });
+    });
+  });
+
+  describe('updateConfiguration', () => {
+    it('Saves config data to the database', () => {
+      // Arrange
+      const saveData = {
+        internal: { a: 'test' },
+        external: { b: 'test' },
+      };
+      const updateOneStub = sinon.stub()
+        .resolves();
+      const client = {
+        isConnected: () => true,
+        db: () => ({
+          collection: sinon.stub().withArgs('mdsAccount').returns({
+            updateOne: updateOneStub,
+          }),
+        }),
+      };
+
+      // Act
+      return impl.updateConfiguration(client, saveData)
+        .then((result) => {
+          chai.expect(result).to.equal(null);
+          chai.expect(updateOneStub.callCount).to.equal(1);
+          chai.expect(updateOneStub.getCalls()[0].args).to.deep.equal([
+            {
+              v: 1,
+            },
+            {
+              $set: {
+                internal: { a: 'test' },
+                external: { b: 'test' },
+              },
+            },
+            {
+              writeConcern: {
+                j: true,
+              },
+              upsert: true,
             },
           ]);
         });
