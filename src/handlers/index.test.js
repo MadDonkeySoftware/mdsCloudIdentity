@@ -1055,4 +1055,139 @@ describe('src/handlers/index', () => {
         });
     });
   });
+
+  describe('getConfiguration', () => {
+    it('Loads the configuration from the data store and returns it', () => {
+      // Arrange
+      sinon.stub(repo, 'getConfiguration').resolves({
+        internal: {
+          internal: 'config',
+        },
+        external: {
+          external: 'config',
+        },
+      });
+
+      // Act / Assert
+      return supertest(app)
+        .get('/v1/configuration')
+        .set('token', 'testToken')
+        .expect('content-type', /application\/json/)
+        .expect(200)
+        .then((resp) => {
+          const body = JSON.parse(resp.text);
+          chai.expect(body).to.eql({
+            internal: 'config',
+          });
+        });
+    });
+  });
+
+  describe('updateConfiguration', () => {
+    it('Saves configuration that originates from internal network with valid token', () => {
+      // Arrange
+      sinon.stub(repo, 'getAccountById').resolves({
+        ownerId: 'testUser',
+        isActive: true,
+      });
+      sinon.stub(repo, 'updateConfiguration').resolves();
+      sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
+      sinon.stub(jwt, 'verify')
+        .withArgs(
+          'testToken',
+          'publicSignature',
+          { complete: true },
+        )
+        .returns({
+          payload: {
+            accountId: '1',
+            iss: 'mdsCloudIdentity',
+          },
+        });
+      // sinon.stub(jwt, 'sign').returns('impersonationToken');
+
+      // Act / Assert
+      return supertest(app)
+        .post('/v1/configuration')
+        .set('token', 'testToken')
+        .send({
+          internal: {
+            identityUrl: 'internalIdentity',
+            nsUrl: 'internalNs',
+            qsUrl: 'internalQs',
+            fsUrl: 'internalFs',
+            sfUrl: 'internalSf',
+            smUrl: 'internalSm',
+            allowSelfSignCert: 'internalSelfSign',
+          },
+          external: {
+            identityUrl: 'externalIdentity',
+            nsUrl: 'externalNs',
+            qsUrl: 'externalQs',
+            fsUrl: 'externalFs',
+            sfUrl: 'externalSf',
+            smUrl: 'externalSm',
+            allowSelfSignCert: 'externalSelfSign',
+          },
+        })
+        .expect('content-type', /application\/json/)
+        .expect(200)
+        .then((resp) => {
+          chai.expect(resp.text).to.eql('');
+        });
+    });
+
+    it('Rejects configuration that originates from internal network with invalid token', () => {
+      // Arrange
+      sinon.stub(repo, 'getAccountById').resolves({
+        ownerId: 'testUser',
+        isActive: true,
+      });
+      sinon.stub(repo, 'updateConfiguration').resolves();
+      sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
+      sinon.stub(jwt, 'verify')
+        .withArgs(
+          'testToken',
+          'publicSignature',
+          { complete: true },
+        )
+        .returns({
+          payload: {
+            accountId: '1001',
+            iss: 'mdsCloudIdentity',
+          },
+        });
+      // sinon.stub(jwt, 'sign').returns('impersonationToken');
+
+      // Act / Assert
+      return supertest(app)
+        .post('/v1/configuration')
+        .set('token', 'testToken')
+        .send({
+          internal: {
+            identityUrl: 'internalIdentity',
+            nsUrl: 'internalNs',
+            qsUrl: 'internalQs',
+            fsUrl: 'internalFs',
+            sfUrl: 'internalSf',
+            smUrl: 'internalSm',
+            allowSelfSignCert: 'internalSelfSign',
+          },
+          external: {
+            identityUrl: 'externalIdentity',
+            nsUrl: 'externalNs',
+            qsUrl: 'externalQs',
+            fsUrl: 'externalFs',
+            sfUrl: 'externalSf',
+            smUrl: 'externalSm',
+            allowSelfSignCert: 'externalSelfSign',
+          },
+        })
+        .expect('content-type', /application\/json/)
+        .expect(404)
+        .then((resp) => {
+          chai.expect(resp.text).to.eql('');
+        });
+    });
+  });
 });
