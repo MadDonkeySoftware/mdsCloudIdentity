@@ -19,7 +19,7 @@ const TABLES = {
  */
 const initClient = (connString) => {
   const connOptions = { useUnifiedTopology: true };
-  const connStr = connString || process.env.MDS_IDENTITY_DB_URL;
+  const connStr = connString || process.env.MDS_IDENTITY_DB_URL || 'mongodb://localhost:27017';
   const client = new mongodb.MongoClient(connStr, connOptions);
 
   return client;
