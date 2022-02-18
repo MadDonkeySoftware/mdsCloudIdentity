@@ -60,20 +60,24 @@ describe('src/handlers/index', () => {
               status: 'Success',
             });
             chai.expect(repo.createAccount.callCount).to.be.equal(1);
-            chai.expect(repo.createAccount.getCalls()[0].args).to.deep.equal([{
-              accountId: '1001',
-              name: 'Test Account',
-              ownerUserId: 'testUser',
-            }]);
+            chai.expect(repo.createAccount.getCalls()[0].args).to.deep.equal([
+              {
+                accountId: '1001',
+                name: 'Test Account',
+                ownerUserId: 'testUser',
+              },
+            ]);
             chai.expect(repo.createUser.callCount).to.be.equal(1);
-            chai.expect(repo.createUser.getCalls()[0].args).to.deep.equal([{
-              confirmCode: null,
-              email: 'test@test.com',
-              isActive: 'true',
-              name: 'Test User',
-              password: 'hashedPassword',
-              userId: 'testUser',
-            }]);
+            chai.expect(repo.createUser.getCalls()[0].args).to.deep.equal([
+              {
+                confirmCode: null,
+                email: 'test@test.com',
+                isActive: 'true',
+                name: 'Test User',
+                password: 'hashedPassword',
+                userId: 'testUser',
+              },
+            ]);
           });
       });
 
@@ -83,7 +87,10 @@ describe('src/handlers/index', () => {
         sinon.stub(repo, 'getUserByUserId').resolves(undefined);
         sinon.stub(repo, 'createAccount');
         sinon.stub(repo, 'createUser');
-        sinon.stub(globals, 'generateRandomString').withArgs(32).returns('confirmCode');
+        sinon
+          .stub(globals, 'generateRandomString')
+          .withArgs(32)
+          .returns('confirmCode');
         sinon.stub(globals, 'getMailer').returns({
           sendMail: sinon.stub(),
         });
@@ -107,19 +114,23 @@ describe('src/handlers/index', () => {
               status: 'Success',
             });
             chai.expect(repo.createAccount.callCount).to.be.equal(1);
-            chai.expect(repo.createAccount.getCalls()[0].args).to.deep.equal([{
-              accountId: '1001',
-              name: 'Test Account',
-              ownerUserId: 'testUser',
-            }]);
+            chai.expect(repo.createAccount.getCalls()[0].args).to.deep.equal([
+              {
+                accountId: '1001',
+                name: 'Test Account',
+                ownerUserId: 'testUser',
+              },
+            ]);
             chai.expect(repo.createUser.callCount).to.be.equal(1);
-            chai.expect(repo.createUser.getCalls()[0].args).to.deep.equal([{
-              confirmCode: 'confirmCode',
-              email: 'test@test.com',
-              name: 'Test User',
-              password: 'hashedPassword',
-              userId: 'testUser',
-            }]);
+            chai.expect(repo.createUser.getCalls()[0].args).to.deep.equal([
+              {
+                confirmCode: 'confirmCode',
+                email: 'test@test.com',
+                name: 'Test User',
+                password: 'hashedPassword',
+                userId: 'testUser',
+              },
+            ]);
           });
       });
     });
@@ -203,11 +214,27 @@ describe('src/handlers/index', () => {
         .then((resp) => {
           const body = JSON.parse(resp.text);
           chai.expect(body.length).to.be.equal(5);
-          chai.expect(_.find(body, (e) => e.message === 'requires property "userId"')).to.not.be.undefined;
-          chai.expect(_.find(body, (e) => e.message === 'requires property "email"')).to.not.be.undefined;
-          chai.expect(_.find(body, (e) => e.message === 'requires property "accountName"')).to.not.be.undefined;
-          chai.expect(_.find(body, (e) => e.message === 'requires property "friendlyName"')).to.not.be.undefined;
-          chai.expect(_.find(body, (e) => e.message === 'requires property "password"')).to.not.be.undefined;
+          chai.expect(
+            _.find(body, (e) => e.message === 'requires property "userId"'),
+          ).to.not.be.undefined;
+          chai.expect(
+            _.find(body, (e) => e.message === 'requires property "email"'),
+          ).to.not.be.undefined;
+          chai.expect(
+            _.find(
+              body,
+              (e) => e.message === 'requires property "accountName"',
+            ),
+          ).to.not.be.undefined;
+          chai.expect(
+            _.find(
+              body,
+              (e) => e.message === 'requires property "friendlyName"',
+            ),
+          ).to.not.be.undefined;
+          chai.expect(
+            _.find(body, (e) => e.message === 'requires property "password"'),
+          ).to.not.be.undefined;
           chai.expect(repo.createAccount.callCount).to.be.equal(0);
           chai.expect(repo.createUser.callCount).to.be.equal(0);
         });
@@ -463,7 +490,9 @@ describe('src/handlers/index', () => {
   describe('publicSignature', () => {
     it('Returns the public signature when available', () => {
       // Arrange
-      sinon.stub(globals, 'getAppPublicSignature').returns('testPublicSignature');
+      sinon
+        .stub(globals, 'getAppPublicSignature')
+        .returns('testPublicSignature');
 
       // Act / Assert
       return supertest(app)
@@ -503,15 +532,15 @@ describe('src/handlers/index', () => {
         isActive: true,
         password: 'oldPassword',
       });
-      sinon.stub(bcryptjs, 'compare').withArgs('oldPassword', 'oldPassword').resolves(true);
+      sinon
+        .stub(bcryptjs, 'compare')
+        .withArgs('oldPassword', 'oldPassword')
+        .resolves(true);
       sinon.stub(repo, 'updateUser').resolves();
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             iss: 'mdsCloudIdentity',
@@ -536,13 +565,15 @@ describe('src/handlers/index', () => {
           chai.expect(repo.updateUser.callCount).to.be.equal(1);
           const callArgs = repo.updateUser.getCalls()[0].args;
           delete callArgs[0].lastActivity;
-          chai.expect(callArgs).to.deep.equal([{
-            email: 'new@email.io',
-            isActive: true,
-            password: 'hashedPassword',
-            name: 'Test Guy',
-            userId: 'testUser',
-          }]);
+          chai.expect(callArgs).to.deep.equal([
+            {
+              email: 'new@email.io',
+              isActive: true,
+              password: 'hashedPassword',
+              name: 'Test Guy',
+              userId: 'testUser',
+            },
+          ]);
         });
     });
 
@@ -554,15 +585,15 @@ describe('src/handlers/index', () => {
         isActive: true,
         password: 'password',
       });
-      sinon.stub(bcryptjs, 'compare').withArgs('oldPassword', 'password').resolves(false);
+      sinon
+        .stub(bcryptjs, 'compare')
+        .withArgs('oldPassword', 'password')
+        .resolves(false);
       sinon.stub(repo, 'updateUser').resolves();
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             iss: 'mdsCloudIdentity',
@@ -601,12 +632,9 @@ describe('src/handlers/index', () => {
       });
       sinon.stub(repo, 'updateUser');
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             iss: 'mdsCloudIdentity',
@@ -617,8 +645,7 @@ describe('src/handlers/index', () => {
       return supertest(app)
         .post('/v1/updateUser')
         .set('token', 'testToken')
-        .send({
-        })
+        .send({})
         .expect('content-type', /application\/json/)
         .expect(400)
         .then((resp) => {
@@ -641,12 +668,9 @@ describe('src/handlers/index', () => {
       });
       sinon.stub(repo, 'updateUser');
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             iss: 'mdsCloudIdentity',
@@ -657,8 +681,7 @@ describe('src/handlers/index', () => {
       return supertest(app)
         .post('/v1/updateUser')
         .set('token', 'testToken')
-        .send({
-        })
+        .send({})
         .expect('content-type', /application\/json/)
         .expect(400)
         .then((resp) => {
@@ -676,12 +699,9 @@ describe('src/handlers/index', () => {
       sinon.stub(repo, 'getUserByUserId').resolves();
       sinon.stub(repo, 'updateUser');
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             iss: 'mdsCloudIdentity',
@@ -692,8 +712,7 @@ describe('src/handlers/index', () => {
       return supertest(app)
         .post('/v1/updateUser')
         .set('token', 'testToken')
-        .send({
-        })
+        .send({})
         .expect('content-type', /application\/json/)
         .expect(400)
         .then((resp) => {
@@ -710,12 +729,9 @@ describe('src/handlers/index', () => {
       // Arrange
       sinon.stub(repo, 'updateUser');
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             iss: 'mdsCloudIdentity',
@@ -725,8 +741,7 @@ describe('src/handlers/index', () => {
       // Act / Assert
       return supertest(app)
         .post('/v1/updateUser')
-        .send({
-        })
+        .send({})
         .expect('content-type', /application\/json/)
         .expect(403)
         .then((resp) => {
@@ -739,12 +754,9 @@ describe('src/handlers/index', () => {
       // Arrange
       sinon.stub(repo, 'updateUser');
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             iss: 'otherProvider',
@@ -755,8 +767,7 @@ describe('src/handlers/index', () => {
       return supertest(app)
         .post('/v1/updateUser')
         .set('token', 'testToken')
-        .send({
-        })
+        .send({})
         .expect('content-type', /application\/json/)
         .expect(403)
         .then((resp) => {
@@ -769,20 +780,16 @@ describe('src/handlers/index', () => {
       // Arrange
       sinon.stub(repo, 'updateUser');
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .throws(new Error('Test Verification Error'));
 
       // Act / Assert
       return supertest(app)
         .post('/v1/updateUser')
         .set('token', 'testToken')
-        .send({
-        })
+        .send({})
         .expect('content-type', /application\/json/)
         .expect(403)
         .then((resp) => {
@@ -806,12 +813,9 @@ describe('src/handlers/index', () => {
         password: 'oldPassword',
       });
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '1',
@@ -851,12 +855,9 @@ describe('src/handlers/index', () => {
         password: 'oldPassword',
       });
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '2',
@@ -878,7 +879,8 @@ describe('src/handlers/index', () => {
         .then((resp) => {
           const body = JSON.parse(resp.text);
           chai.expect(body).to.eql({
-            message: 'Could not find account, user or insufficient privilege to impersonate',
+            message:
+              'Could not find account, user or insufficient privilege to impersonate',
           });
         });
     });
@@ -896,12 +898,9 @@ describe('src/handlers/index', () => {
         password: 'oldPassword',
       });
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '1',
@@ -923,7 +922,8 @@ describe('src/handlers/index', () => {
         .then((resp) => {
           const body = JSON.parse(resp.text);
           chai.expect(body).to.eql({
-            message: 'Could not find account, user or insufficient privilege to impersonate',
+            message:
+              'Could not find account, user or insufficient privilege to impersonate',
           });
         });
     });
@@ -938,12 +938,9 @@ describe('src/handlers/index', () => {
         password: 'oldPassword',
       });
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '1',
@@ -965,7 +962,8 @@ describe('src/handlers/index', () => {
         .then((resp) => {
           const body = JSON.parse(resp.text);
           chai.expect(body).to.eql({
-            message: 'Could not find account, user or insufficient privilege to impersonate',
+            message:
+              'Could not find account, user or insufficient privilege to impersonate',
           });
         });
     });
@@ -983,12 +981,9 @@ describe('src/handlers/index', () => {
         password: 'oldPassword',
       });
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '1',
@@ -1010,7 +1005,8 @@ describe('src/handlers/index', () => {
         .then((resp) => {
           const body = JSON.parse(resp.text);
           chai.expect(body).to.eql({
-            message: 'Could not find account, user or insufficient privilege to impersonate',
+            message:
+              'Could not find account, user or insufficient privilege to impersonate',
           });
         });
     });
@@ -1023,12 +1019,9 @@ describe('src/handlers/index', () => {
       });
       sinon.stub(repo, 'getUserByUserId').resolves();
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '1',
@@ -1050,7 +1043,8 @@ describe('src/handlers/index', () => {
         .then((resp) => {
           const body = JSON.parse(resp.text);
           chai.expect(body).to.eql({
-            message: 'Could not find account, user or insufficient privilege to impersonate',
+            message:
+              'Could not find account, user or insufficient privilege to impersonate',
           });
         });
     });
@@ -1092,12 +1086,9 @@ describe('src/handlers/index', () => {
       });
       sinon.stub(repo, 'updateConfiguration').resolves();
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '1',
@@ -1145,12 +1136,9 @@ describe('src/handlers/index', () => {
       });
       sinon.stub(repo, 'updateConfiguration').resolves();
       sinon.stub(globals, 'getAppPublicSignature').returns('publicSignature');
-      sinon.stub(jwt, 'verify')
-        .withArgs(
-          'testToken',
-          'publicSignature',
-          { complete: true },
-        )
+      sinon
+        .stub(jwt, 'verify')
+        .withArgs('testToken', 'publicSignature', { complete: true })
         .returns({
           payload: {
             accountId: '1001',
