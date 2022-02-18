@@ -52,7 +52,9 @@ describe(__filename, () => {
   describe('getEnvVar', () => {
     it('Reads env vars', () => {
       const keys = ['NODE_ENV', 'NONEXISTENT'];
-      _.map(keys, (k) => chai.expect(helpers.getEnvVar(k)).to.equal(process.env[k]));
+      _.map(keys, (k) =>
+        chai.expect(helpers.getEnvVar(k)).to.equal(process.env[k]),
+      );
     });
   });
 });

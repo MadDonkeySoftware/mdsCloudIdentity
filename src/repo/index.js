@@ -10,16 +10,21 @@ const initializeMongoDb = () => {
 
   const handleAppShutdown = () => client.close();
 
-  const getNextCounterValue = (entity) => mongo.getNextCounterValue(client, entity);
+  const getNextCounterValue = (entity) =>
+    mongo.getNextCounterValue(client, entity);
   const createUser = (userData) => mongo.createUser(client, userData);
   const getUserByUserId = (userId) => mongo.getUserByUserId(client, userId);
   const updateUser = (userData) => mongo.updateUser(client, userData);
-  const createAccount = (accountData) => mongo.createAccount(client, accountData);
+  const createAccount = (accountData) =>
+    mongo.createAccount(client, accountData);
   const getAccountById = (accountId) => mongo.getAccountById(client, accountId);
-  const getAccountByOwnerId = (accountId) => mongo.getAccountByOwnerId(client, accountId);
-  const updateAccount = (accountData) => mongo.updateAccount(client, accountData);
+  const getAccountByOwnerId = (accountId) =>
+    mongo.getAccountByOwnerId(client, accountId);
+  const updateAccount = (accountData) =>
+    mongo.updateAccount(client, accountData);
   const getConfiguration = () => mongo.getConfiguration(client);
-  const updateConfiguration = (configuration) => mongo.updateConfiguration(client, configuration);
+  const updateConfiguration = (configuration) =>
+    mongo.updateConfiguration(client, configuration);
 
   return {
     handleAppShutdown,
@@ -37,7 +42,10 @@ const initializeMongoDb = () => {
 };
 
 const initializeDatabase = () => {
-  if (!process.env.MDS_IDENTITY_DB_URL || process.env.MDS_IDENTITY_DB_URL.startsWith('mongodb://')) {
+  if (
+    !process.env.MDS_IDENTITY_DB_URL ||
+    process.env.MDS_IDENTITY_DB_URL.startsWith('mongodb://')
+  ) {
     return initializeMongoDb();
   }
 
@@ -45,7 +53,9 @@ const initializeDatabase = () => {
   // if (process.env.MDS_IDENTITY_DB_URL.startsWith('mysql://')) {
   //   return initializeMysqlDb();
   // }
-  throw new Error(`Database not configured properly. "${process.env.MDS_IDENTITY_DB_URL}" not understood.`);
+  throw new Error(
+    `Database not configured properly. "${process.env.MDS_IDENTITY_DB_URL}" not understood.`,
+  );
 };
 
 module.exports = initializeDatabase();

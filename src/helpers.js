@@ -30,7 +30,8 @@ const anyToString = (input, defaultValue) => {
  * @param {string} defaultValue the environment variable key
  * @returns {string} the environment variable value
  */
-const getEnvVar = (key, defaultValue) => _.get(process.env, [key], defaultValue);
+const getEnvVar = (key, defaultValue) =>
+  _.get(process.env, [key], defaultValue);
 
 /**
  * Normalizes IP addresses that are IPv4 wrapped in IPv6 back to IPv4 format

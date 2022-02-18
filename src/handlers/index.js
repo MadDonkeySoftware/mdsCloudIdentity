@@ -20,13 +20,13 @@ const getIssuer = () => process.env.ORID_PROVIDER_KEY || 'mdsCloudIdentity';
 const getJwtSigningData = () => {
   const secret = globals.getAppSecret();
 
-  const signingKey = (process.env.IDENTITY_SECRET_PRIVATE_PASS
+  const signingKey = process.env.IDENTITY_SECRET_PRIVATE_PASS
     ? { key: secret, passphrase: process.env.IDENTITY_SECRET_PRIVATE_PASS }
-    : secret);
+    : secret;
 
-  const signingOptions = (process.env.IDENTITY_SECRET_PRIVATE_PASS
+  const signingOptions = process.env.IDENTITY_SECRET_PRIVATE_PASS
     ? { algorithm: 'RS256', expiresIn: '4h', issuer: getIssuer() }
-    : { expiresIn: '4h', issuer: getIssuer() });
+    : { expiresIn: '4h', issuer: getIssuer() };
 
   return { signingKey, signingOptions };
 };
@@ -50,13 +50,7 @@ const sendResponse = (response, status, payload) => {
 
 const registerHandler = async (request, response) => {
   const { body } = request;
-  const {
-    userId,
-    email,
-    accountName,
-    friendlyName,
-    password,
-  } = body;
+  const { userId, email, accountName, friendlyName, password } = body;
 
   const responseBody = { status: 'Failed' };
   const [existingAccount, existingUser] = await Promise.all([
@@ -79,8 +73,10 @@ const registerHandler = async (request, response) => {
   await repo.createAccount(newAccount);
 
   // TODO: Use case for existing user.
-  const hashedPassword = await bcryptjs.hash(password,
-    parseInt(process.env.PWD_HASH_CYCLES, 10) || 18);
+  const hashedPassword = await bcryptjs.hash(
+    password,
+    parseInt(process.env.PWD_HASH_CYCLES, 10) || 18,
+  );
   const confirmCode = globals.generateRandomString(32);
   const newUser = {
     userId,
@@ -90,7 +86,10 @@ const registerHandler = async (request, response) => {
     confirmCode,
   };
 
-  const bypassUserActivation = helpers.toBoolean(process.env.BYPASS_USER_ACTIVATION, false);
+  const bypassUserActivation = helpers.toBoolean(
+    process.env.BYPASS_USER_ACTIVATION,
+    false,
+  );
   if (bypassUserActivation) {
     newUser.isActive = 'true';
     newUser.confirmCode = null;
@@ -122,14 +121,11 @@ const registerHandler = async (request, response) => {
 
 const authenticateHandler = async (request, response) => {
   const { body } = request;
-  const {
-    accountId,
-    userId,
-    password,
-  } = body;
+  const { accountId, userId, password } = body;
 
   const log = globals.getLogger();
-  const errorMessage = 'Could not find account, user or passwords did not match';
+  const errorMessage =
+    'Could not find account, user or passwords did not match';
   const [account, user] = await Promise.all([
     repo.getAccountById(accountId),
     repo.getUserByUserId(userId),
@@ -196,16 +192,12 @@ const publicSignatureHandler = async (request, response) => {
 
 const updateUserHandler = async (request, response) => {
   const { body, parsedToken } = request;
-  const {
-    email,
-    oldPassword,
-    newPassword,
-    friendlyName,
-  } = body;
+  const { email, oldPassword, newPassword, friendlyName } = body;
   let shouldUpdate = false;
 
   const log = globals.getLogger();
-  const errorMessage = 'Could not find account, user or passwords did not match';
+  const errorMessage =
+    'Could not find account, user or passwords did not match';
   const user = await repo.getUserByUserId(parsedToken.payload.userId);
 
   if (!user) {
@@ -228,8 +220,10 @@ const updateUserHandler = async (request, response) => {
       return sendResponse(response, 400, { message: errorMessage });
     }
 
-    const hashedPassword = await bcryptjs.hash(newPassword,
-      parseInt(process.env.PWD_HASH_CYCLES, 10) || 18);
+    const hashedPassword = await bcryptjs.hash(
+      newPassword,
+      parseInt(process.env.PWD_HASH_CYCLES, 10) || 18,
+    );
     user.password = hashedPassword;
     shouldUpdate = true;
   }
@@ -254,17 +248,15 @@ const updateUserHandler = async (request, response) => {
 
 const impersonateHandler = async (request, response) => {
   // TODO: Update impersonation to use surrogate account rather than root account
-  const errorMessage = 'Could not find account, user or insufficient privilege to impersonate';
+  const errorMessage =
+    'Could not find account, user or insufficient privilege to impersonate';
   if (request.parsedToken.payload.accountId !== '1') {
     await globals.delay(10000);
     return sendResponse(response, 400, { message: errorMessage });
   }
 
   const { body } = request;
-  const {
-    accountId,
-    userId,
-  } = body;
+  const { accountId, userId } = body;
 
   const log = globals.getLogger();
   const account = await repo.getAccountById(accountId);
@@ -281,7 +273,8 @@ const impersonateHandler = async (request, response) => {
     return sendResponse(response, 400, { message: errorMessage });
   }
 
-  const rootUserId = request.parsedToken.payload.accountId === '1' ? account.ownerId : undefined;
+  const rootUserId =
+    request.parsedToken.payload.accountId === '1' ? account.ownerId : undefined;
 
   const user = await repo.getUserByUserId(userId || rootUserId);
   if (!user) {
@@ -336,7 +329,10 @@ const updateConfigurationHandler = async (request, response) => {
 
   const log = globals.getLogger();
   if (parsedToken.payload.accountId !== '1') {
-    log.warn({ requestorIp: request.requestorIp }, 'Non root account attempting to change configuration');
+    log.warn(
+      { requestorIp: request.requestorIp },
+      'Non root account attempting to change configuration',
+    );
 
     // 404 here instead of 401 to not leak that this endpoint exists.
     return sendResponse(response, 404);
@@ -363,7 +359,9 @@ const validateToken = (request, response, next) => {
   }
 
   try {
-    const parsedToken = jwt.verify(token, globals.getAppPublicSignature(), { complete: true });
+    const parsedToken = jwt.verify(token, globals.getAppPublicSignature(), {
+      complete: true,
+    });
     if (parsedToken && parsedToken.payload.iss === getIssuer()) {
       request.parsedToken = parsedToken;
     } else {
@@ -379,7 +377,9 @@ const validateFromInternalNetwork = (request, response, next) => {
   // I'm not going to do any better better explaining this so see link for more info:
   // https://stackoverflow.com/questions/29411551/express-js-req-ip-is-returning-ffff127-0-0-1
   // Also, https://stackoverflow.com/a/47913950/1487311
-  const requestIp = helpers.normalizeRequestAddress(request.headers['x-forwarded-for'] || request.socket.remoteAddress);
+  const requestIp = helpers.normalizeRequestAddress(
+    request.headers['x-forwarded-for'] || request.socket.remoteAddress,
+  );
   request.requestorIp = requestIp;
 
   if (_.indexOf(['127.0.0.1', '::1'], requestIp) > -1) {
@@ -396,12 +396,25 @@ const validateFromInternalNetwork = (request, response, next) => {
 };
 
 router.post('/register', validatePostBody(registerValidator), registerHandler);
-router.post('/authenticate', validatePostBody(authenticateValidator), authenticateHandler);
+router.post(
+  '/authenticate',
+  validatePostBody(authenticateValidator),
+  authenticateHandler,
+);
 router.get('/publicSignature', publicSignatureHandler);
 router.post('/updateUser', validateToken, updateUserHandler);
 router.post('/impersonate', validateToken, impersonateHandler);
-router.get('/configuration', validateFromInternalNetwork, getConfigurationHandler);
-router.post('/configuration', validateToken, validatePostBody(configurationValidator), updateConfigurationHandler);
+router.get(
+  '/configuration',
+  validateFromInternalNetwork,
+  getConfigurationHandler,
+);
+router.post(
+  '/configuration',
+  validateToken,
+  validatePostBody(configurationValidator),
+  updateConfigurationHandler,
+);
 
 /* TODO
  * Add user to account

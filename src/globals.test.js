@@ -91,8 +91,7 @@ describe('globals', () => {
   });
 
   describe.skip('getAppPublicSignature', () => {
-    it('reads app public signature from file', () => {
-    });
+    it('reads app public signature from file', () => {});
   });
 
   describe('generateRandomString', () => {

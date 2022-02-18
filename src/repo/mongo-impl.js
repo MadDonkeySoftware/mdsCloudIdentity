@@ -19,7 +19,10 @@ const TABLES = {
  */
 const initClient = (connString) => {
   const connOptions = { useUnifiedTopology: true };
-  const connStr = connString || process.env.MDS_IDENTITY_DB_URL || 'mongodb://localhost:27017';
+  const connStr =
+    connString ||
+    process.env.MDS_IDENTITY_DB_URL ||
+    'mongodb://localhost:27017';
   const client = new mongodb.MongoClient(connStr, connOptions);
 
   return client;
@@ -28,12 +31,13 @@ const initClient = (connString) => {
 /**
  * @param {mongodb.MongoClient} mongoClient the mongo client
  */
-const ensureConnected = (mongoClient) => (mongoClient.isConnected()
-  ? Promise.resolve(mongoClient)
-  : mongoClient.connect(CONNECT_OPTIONS));
+const ensureConnected = (mongoClient) =>
+  mongoClient.isConnected()
+    ? Promise.resolve(mongoClient)
+    : mongoClient.connect(CONNECT_OPTIONS);
 
-const getNextCounterValue = (mongoClient, entity) => ensureConnected(mongoClient)
-  .then((client) => {
+const getNextCounterValue = (mongoClient, entity) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
     const query = {
       key: entity,
@@ -48,7 +52,9 @@ const getNextCounterValue = (mongoClient, entity) => ensureConnected(mongoClient
       upsert: true,
       returnOriginal: false,
     };
-    return db.collection(TABLES.counter).findOneAndUpdate(query, params, options)
+    return db
+      .collection(TABLES.counter)
+      .findOneAndUpdate(query, params, options)
       .then((data) => data.value.value);
   });
 
@@ -63,8 +69,8 @@ const getNextCounterValue = (mongoClient, entity) => ensureConnected(mongoClient
  * @param {string} userData.confirmCode The confirmation code associated with the user
  * @param {string} [userData.isActive] Optional indicator to block or allow user to authenticate.
  */
-const createUser = (mongoClient, userData) => ensureConnected(mongoClient)
-  .then((client) => {
+const createUser = (mongoClient, userData) =>
+  ensureConnected(mongoClient).then((client) => {
     const now = new Date();
     const db = client.db();
     const params = {
@@ -87,7 +93,8 @@ const createUser = (mongoClient, userData) => ensureConnected(mongoClient)
       },
     };
 
-    return db.collection(TABLES.user)
+    return db
+      .collection(TABLES.user)
       .insertOne(params, options)
       .then(() => ({
         userId: userData.userId,
@@ -106,10 +113,12 @@ const createUser = (mongoClient, userData) => ensureConnected(mongoClient)
  * @param {mongodb.MongoClient} mongoClient the mongo client
  * @param {string} userId The id that will uniquely identify the user
  */
-const getUserByUserId = (mongoClient, userId) => ensureConnected(mongoClient)
-  .then((client) => {
+const getUserByUserId = (mongoClient, userId) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
-    return db.collection(TABLES.user).findOne({ userId })
+    return db
+      .collection(TABLES.user)
+      .findOne({ userId })
       .then((item) => {
         if (item) {
           const user = {
@@ -142,8 +151,8 @@ const getUserByUserId = (mongoClient, userId) => ensureConnected(mongoClient)
  * @param {string} userData.confirmCode The confirmation code associated with the user
  * @param {string} [userData.isActive] Optional indicator to block or allow user to authenticate.
  */
-const updateUser = (mongoClient, userData) => ensureConnected(mongoClient)
-  .then((client) => {
+const updateUser = (mongoClient, userData) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
     const params = {
       $set: {
@@ -169,7 +178,10 @@ const updateUser = (mongoClient, userData) => ensureConnected(mongoClient)
     };
 
     const selector = { userId: userData.userId };
-    return db.collection(TABLES.user).updateOne(selector, params, options).then(() => null);
+    return db
+      .collection(TABLES.user)
+      .updateOne(selector, params, options)
+      .then(() => null);
   });
 
 /**
@@ -181,8 +193,8 @@ const updateUser = (mongoClient, userData) => ensureConnected(mongoClient)
  * @param {string} accountData.ownerUserId The unique id for the root user of the account.
  * @param {string} [accountData.isActive] Optional indicator to block or allow user to authenticate.
  */
-const createAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
-  .then((client) => {
+const createAccount = (mongoClient, accountData) =>
+  ensureConnected(mongoClient).then((client) => {
     const now = new Date();
     const db = client.db();
     const params = {
@@ -193,14 +205,17 @@ const createAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
       created: now.toISOString(),
       lastActivity: now.toISOString(),
     };
-    return db.collection(TABLES.account).insertOne(params).then(() => ({
-      accountId: accountData.accountId,
-      friendlyName: accountData.name,
-      ownerId: accountData.ownerUserId,
-      isActive: helpers.toBoolean(accountData.isActive),
-      created: now,
-      lastActivity: now,
-    }));
+    return db
+      .collection(TABLES.account)
+      .insertOne(params)
+      .then(() => ({
+        accountId: accountData.accountId,
+        friendlyName: accountData.name,
+        ownerId: accountData.ownerUserId,
+        isActive: helpers.toBoolean(accountData.isActive),
+        created: now,
+        lastActivity: now,
+      }));
   });
 
 /**
@@ -208,10 +223,12 @@ const createAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
  * @param {mongodb.MongoClient} mongoClient the mongo client
  * @param {string} accountId The id that will uniquely identify the account
  */
-const getAccountById = (mongoClient, accountId) => ensureConnected(mongoClient)
-  .then((client) => {
+const getAccountById = (mongoClient, accountId) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
-    return db.collection(TABLES.account).findOne({ accountId })
+    return db
+      .collection(TABLES.account)
+      .findOne({ accountId })
       .then((item) => {
         if (item) {
           const account = {
@@ -233,10 +250,12 @@ const getAccountById = (mongoClient, accountId) => ensureConnected(mongoClient)
  * @param {mongodb.MongoClient} mongoClient the mongo client
  * @param {string} ownerId The id that will uniquely identify the account
  */
-const getAccountByOwnerId = (mongoClient, ownerId) => ensureConnected(mongoClient)
-  .then((client) => {
+const getAccountByOwnerId = (mongoClient, ownerId) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
-    return db.collection(TABLES.account).findOne({ ownerId })
+    return db
+      .collection(TABLES.account)
+      .findOne({ ownerId })
       .then((item) => {
         if (item) {
           const account = {
@@ -262,8 +281,8 @@ const getAccountByOwnerId = (mongoClient, ownerId) => ensureConnected(mongoClien
  * @param {string} accountData.ownerId The unique id for the root user of the account.
  * @param {string} [accountData.isActive] Optional indicator to block or allow user to authenticate.
  */
-const updateAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
-  .then((client) => {
+const updateAccount = (mongoClient, accountData) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
     const selector = { accountId: accountData.accountId };
     const params = {
@@ -280,7 +299,8 @@ const updateAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
       },
     };
 
-    return db.collection(TABLES.account)
+    return db
+      .collection(TABLES.account)
       .updateOne(selector, params, options)
       .then(() => null);
   });
@@ -290,10 +310,12 @@ const updateAccount = (mongoClient, accountData) => ensureConnected(mongoClient)
  * @param {mongodb.MongoClient} mongoClient the mongo client
  * @param {string} ownerId The id that will uniquely identify the account
  */
-const getConfiguration = (mongoClient) => ensureConnected(mongoClient)
-  .then((client) => {
+const getConfiguration = (mongoClient) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
-    return db.collection(TABLES.configuration).findOne({ v: 1 })
+    return db
+      .collection(TABLES.configuration)
+      .findOne({ v: 1 })
       .then((item) => {
         if (item) {
           return item;
@@ -323,8 +345,8 @@ const getConfiguration = (mongoClient) => ensureConnected(mongoClient)
  * @param {string} accountData.external.smUrl The state machine service url
  * @param {boolean} accountData.external.allowSelfSignCert Toggle to allow self signed certs
  */
-const updateConfiguration = (mongoClient, configuration) => ensureConnected(mongoClient)
-  .then((client) => {
+const updateConfiguration = (mongoClient, configuration) =>
+  ensureConnected(mongoClient).then((client) => {
     const db = client.db();
     const selector = { v: 1 };
     const params = {
@@ -340,7 +362,8 @@ const updateConfiguration = (mongoClient, configuration) => ensureConnected(mong
       upsert: true,
     };
 
-    return db.collection(TABLES.configuration)
+    return db
+      .collection(TABLES.configuration)
       .updateOne(selector, params, options)
       .then(() => null);
   });
