@@ -1,0 +1,7 @@
+{
+  "source": "pino",
+  "pump": "logstashHttp",
+  "mode": "http",
+  "host": "localhost",
+  "port": 6002
+}
