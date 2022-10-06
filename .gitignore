@@ -62,5 +62,10 @@ typings/
 
 .vscode/
 
+# typescript outputs
+dist/
+
+config/local*.js
+
 scripts/key*
 scripts/pass
