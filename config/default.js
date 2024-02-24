@@ -8,7 +8,10 @@ module.exports = {
   fastifyOptions: {
     logger: {
       level: 'info',
-      mixin: (mergeObject) => ({ ...mergeObject, name: 'mdsCloudIdentity' }),
+      mixin: (mergeObject) => ({
+        ...mergeObject,
+        'event.dataset': 'mdsCloudIdentity',
+      }),
     },
   },
 

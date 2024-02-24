@@ -35,11 +35,10 @@ export async function setupSystemUser(): Promise<void> {
     });
   }
 
-  let password;
+  let password =
+    process.env.MDS_SYS_PASSWORD || config.get<string>('systemPassword');
 
-  if (process.env.MDS_SYS_PASSWORD) {
-    password = process.env.MDS_SYS_PASSWORD;
-  } else {
+  if (!password) {
     logger.info(
       { accountId, userId, password },
       'System user will be created with random password. Be sure to change the default password using the "updateUser" endpoint!',

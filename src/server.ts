@@ -16,6 +16,11 @@ initialize(app.log);
 setupSystemUser();
 // app.listen(port, () => logger.info(`Example app listening on port ${port}!`));
 
+app.setErrorHandler((error, request, reply) => {
+  app.log.error(error);
+  reply.send(error);
+});
+
 app.listen(
   {
     port,

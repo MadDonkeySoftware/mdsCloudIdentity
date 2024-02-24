@@ -1,6 +1,6 @@
-import { InitialOptionsTsJest } from 'ts-jest/dist/types';
+import { JestConfigWithTsJest } from 'ts-jest/dist/types';
 
-const config: InitialOptionsTsJest = {
+const config: JestConfigWithTsJest = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   verbose: true,
@@ -21,11 +21,14 @@ const config: InitialOptionsTsJest = {
     },
   },
   reporters: ['<rootDir>/jest-reporters/emit-only-failures.js'],
-  globals: {
-    'ts-jest': {
-      // https://stackoverflow.com/questions/45087018/jest-simple-tests-are-slow
-      isolatedModules: true,
-    },
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        // https://stackoverflow.com/questions/45087018/jest-simple-tests-are-slow
+        isolatedModules: true,
+      },
+    ],
   },
 };
 

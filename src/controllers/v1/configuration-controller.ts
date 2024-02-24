@@ -52,14 +52,14 @@ export async function configurationController(
         const data = request.isLocal ? dbConfig.internal : dbConfig.external;
         response.status(200);
         response.send(data);
-        return;
+      } else {
+        app.log.error(
+          {},
+          'Get configuration endpoint could not find a configuration to supply caller.',
+        );
+        response.status(422);
+        response.send();
       }
-      app.log.error(
-        {},
-        'Get configuration endpoint could not find a configuration to supply caller.',
-      );
-      response.status(422);
-      response.send();
     },
   );
 

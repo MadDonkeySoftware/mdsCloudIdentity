@@ -9,7 +9,6 @@ import {
   OptionalId,
   InsertOneOptions,
   UpdateOptions,
-  MatchKeysAndValues,
 } from 'mongodb';
 import { AccountData, ConfigurationData, UserData } from '../types';
 import { anyToString, anyToBoolean } from '../utils';
@@ -157,8 +156,10 @@ export class MongoRepo extends BaseRepo {
       if (userData.activationCode === null) {
         params.$unset = { activationCode: '' };
       } else {
-        (params.$set as MatchKeysAndValues<Document>).activationCode =
-          userData.activationCode;
+        params.$set = {
+          ...params.$set,
+          activationCode: userData.activationCode,
+        };
       }
     }
     const options: UpdateOptions = {
