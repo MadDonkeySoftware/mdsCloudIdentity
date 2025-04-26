@@ -282,6 +282,7 @@ describe('registrationController test', () => {
     expect(resp.headers['content-type']).toMatch(/application\/json/);
     const body = JSON.parse(resp.body);
     expect(body).toEqual({
+      code: 'FST_ERR_VALIDATION',
       error: 'Bad Request',
       message: "body must have required property 'accountName'",
       statusCode: 400,
