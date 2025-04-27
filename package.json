@@ -76,6 +76,6 @@
     "wait-on": "^8.0.3"
   },
   "optionalDependencies": {
-    "mds-log-pump": "^0.0.5"
+    "mds-log-pump": "^0.0.6"
   }
 }
