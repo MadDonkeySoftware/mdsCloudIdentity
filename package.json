@@ -33,7 +33,7 @@
   "homepage": "https://github.com/MadDonkeySoftware/mdsCloudIdentity#readme",
   "dependencies": {
     "@fastify/type-provider-typebox": "^2.3.0",
-    "@sinclair/typebox": "^0.24.44",
+    "@sinclair/typebox": "^0.34.0",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.8",
     "fastify": "^4.7.0",
