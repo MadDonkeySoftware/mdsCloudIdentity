@@ -52,7 +52,7 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/lodash": "^4.14.186",
-    "@types/mock-require": "^2.0.1",
+    "@types/mock-require": "^3.0.0",
     "@types/netmask": "^1.0.30",
     "@types/nodemailer": "^6.4.6",
     "@types/supertest": "^2.0.12",
