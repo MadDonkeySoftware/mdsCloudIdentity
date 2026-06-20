@@ -41,7 +41,7 @@
     "lodash": "^4.17.21",
     "mongodb": "^4.10.0",
     "netmask": "^2.0.2",
-    "nodemailer": "^6.8.0"
+    "nodemailer": "^9.0.0"
   },
   "devDependencies": {
     "@jest/reporters": "^29.7.0",
